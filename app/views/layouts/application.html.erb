@@ -9,6 +9,22 @@
   </head>
 
   <body>
-    <%= yield %>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <% if current_user %>
+          <li><%= link_to 'Log Out', logout_path, method: :delete %></li>
+        <% else %>
+          <li><%= link_to 'ログイン', '/auth/twitter' %></li>
+        <% end %>
+      </ul>
+    </div>
+    <div class="container">
+      <% if flash[:notice] %>
+        <div class="alert alert-success">
+          <%= flash[:notice] %>
+        </div>
+      <% end %>
+      <%= yield %>
+    </div>
   </body>
 </html>
