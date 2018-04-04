@@ -1,8 +1,7 @@
-class TweetController < ApplicationController
+class TweetController < BaseController
   WHITE_LIST = %w(arxiv feedly Hatena)
 
   def index
-    delete_tweets
   end
 
   def include_white_list_token? tweet
@@ -47,18 +46,27 @@ class TweetController < ApplicationController
       config.access_token        = session[:oauth_token]
       config.access_token_secret = session[:oauth_token_secret]
     end
-    p client
 
-    # 1.upto 16 do |page|
-    #   tweets = client.user_timeline(param)
-    #   tweets.each_with_index do |tweet, i|
-    #     if tweet.favorite_count < limit
-    #       next if include_white_list_token?(tweet.text)
-    #       next if is_retweet?(tweet.text)
-    #       next if is_english?(tweet.text)
-    #       client.destroy_status(tweet.id)
-    #     end
-    #   end
-    # end
+    last_tweet = nil
+    1.upto 16 do |page|
+      param['max_id'] = last_tweet.id if last_tweet
+      tweets = client.user_timeline(param)
+      tweets.each_with_index do |tweet, i|
+        if tweet.favorite_count < limit
+          next if include_white_list_token?(tweet.text)
+          next if is_retweet?(tweet.text)
+          next if is_english?(tweet.text)
+
+          begin
+            client.destroy_status(tweet.id)
+          rescue => err
+            puts err
+          end
+        end
+      end
+      last_tweet = tweets[-1]
+    end
+
+    redirect_to root_path, notice: 'ツイートを削除しました'
   end
 end
